@@ -9,11 +9,14 @@ import GHC.Generics
 data Dataset = Trade | Tariff | Development
   deriving (Show, Enum)
 
+-- better to import the list of reporters due to the large number
 data Reporter = USA
   deriving (Show, Enum)
 
+-- add other formats as needed
 data Format = JSON deriving (Show, Enum)
 
+-- this is the data structure for the request
 data Request = Request { dataset :: Dataset
                        , reporter :: Reporter
                        , prod :: String
@@ -23,9 +26,7 @@ data Request = Request { dataset :: Dataset
                        , year :: Int
                        }
 
-years = [1990 .. 2016]
-
---  tradestats-trade/reporter/usa/year/ALL/partner/wld/product/ALL/indicator/XPRT-TRD-VL\?format=JSON
+-- this function generates the URL from the request
 getRequestUrl :: Request -> String
 getRequestUrl r = baseUrl ++ "tradestats-" ++ show (dataset r)
   ++ "/reporter/" ++ show (reporter r)
@@ -33,11 +34,12 @@ getRequestUrl r = baseUrl ++ "tradestats-" ++ show (dataset r)
   ++ "/partner/" ++ partner r
   ++ "/product/" ++ prod r
   ++ "/indicator/" ++ indicator r
-  ++ "?format=" ++ show (format ri)
+  ++ "?format=" ++ show (format r)
     where baseUrl = "http://wits.worldbank.org/API/V1/SDMX/V21/datasource/"
 
-getJSON :: Request -> IO B.ByteString
-getJSON r = simpleHttp url
+-- this function fetches the data given the request parameters
+getData :: Request -> IO B.ByteString
+getData r = simpleHttp url
   where url = getRequestUrl r
 
 -- Example: Dataset: Trade; Reporter: USA; Product: Ores and Metals; Type: JSON...
@@ -45,7 +47,7 @@ r = Request Trade USA "OresMtls" JSON "ALL" "XPRT-TRD-VL" 2016
 
 main :: IO ()
 main = do
- d <- (eitherDecode <$> getJSON r) :: IO (Either String Object)
+ d <- (eitherDecode <$> getData r) :: IO (Either String Object)
  case d of
   Left err -> putStrLn err
   Right ps -> print ps
