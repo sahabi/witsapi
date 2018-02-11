@@ -4,15 +4,18 @@ let
 
   inherit (nixpkgs) pkgs;
 
-  f = { mkDerivation, aeson, base, stdenv, ghc-mod, hindent, hlint }:
+  f = { mkDerivation, aeson, base, bytestring, http-conduit, stdenv
+      , text
+      }:
       mkDerivation {
         pname = "witsapi";
         version = "0.1.0.0";
         src = ./.;
         isLibrary = false;
         isExecutable = true;
-        executableHaskellDepends = [ aeson base ];
-        builDepends = [ ghc-mod hindent hlint ];
+        executableHaskellDepends = [
+          aeson base bytestring http-conduit text
+        ];
         homepage = "https://github.com/sahabi/witsapi.git";
         license = stdenv.lib.licenses.bsd3;
       };
