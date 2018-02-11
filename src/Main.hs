@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
-
 import Data.Aeson
 import Data.Text
 import Control.Applicative
@@ -7,18 +5,6 @@ import Control.Monad
 import qualified Data.ByteString.Lazy as B
 import Network.HTTP.Conduit (simpleHttp)
 import GHC.Generics
-
-type RequestUrl = String
-
-data TradeData =
-  TradeData { dataSets  :: !Text
-            , lastName   :: !Text
-            , age        :: Int
-            , likesPizza :: Bool
-            } deriving (Show,Generic)
-
-instance FromJSON TradeData
-instance ToJSON TradeData
 
 data Dataset = Trade | Tariff | Development
   deriving (Show, Enum)
@@ -38,30 +24,28 @@ data Request = Request { dataset :: Dataset
                        }
 
 years = [1990 .. 2016]
-baseUrl = "http://wits.worldbank.org/API/V1/SDMX/V21/datasource/"
-indicatorListFile = "/home/sahabi/Downloads/indicatorList.csv"
 
 --  tradestats-trade/reporter/usa/year/ALL/partner/wld/product/ALL/indicator/XPRT-TRD-VL\?format=JSON
 getRequestUrl :: Request -> String
-getRequestUrl r = baseUrl ++ "tradestats-" ++ show (dataset r) ++ "/reporter/" ++ show (reporter r)
-  ++ "/year/" ++ show (year r) ++ "/partner/" ++ partner r
-  ++ "/product/" ++ prod r ++ "/indicator/" ++ indicator r ++ "?format="
-  ++ show (format r)
+getRequestUrl r = baseUrl ++ "tradestats-" ++ show (dataset r)
+  ++ "/reporter/" ++ show (reporter r)
+  ++ "/year/" ++ show (year r)
+  ++ "/partner/" ++ partner r
+  ++ "/product/" ++ prod r
+  ++ "/indicator/" ++ indicator r
+  ++ "?format=" ++ show (format ri)
+    where baseUrl = "http://wits.worldbank.org/API/V1/SDMX/V21/datasource/"
 
--- Read the remote copy of the JSON file.
 getJSON :: Request -> IO B.ByteString
-getJSON r = simpleHttp url where url = getRequestUrl r
+getJSON r = simpleHttp url
+  where url = getRequestUrl r
 
+-- Example: Dataset: Trade; Reporter: USA; Product: Ores and Metals; Type: JSON...
 r = Request Trade USA "OresMtls" JSON "ALL" "XPRT-TRD-VL" 2016
 
 main :: IO ()
 main = do
- -- Get JSON data and decode it
- d <- (eitherDecode <$> getJSON r) :: IO (Either String TradeData)
- -- If d is Left, the JSON was malformed.
- -- In that case, we report the error.
- -- Otherwise, we perform the operation of
- -- our choice. In this case, just print it.
+ d <- (eitherDecode <$> getJSON r) :: IO (Either String Object)
  case d of
   Left err -> putStrLn err
   Right ps -> print ps
