@@ -60,9 +60,6 @@ getData :: Request -> IO B.ByteString
 getData r = simpleHttp url
   where url = getRequestUrl r
 
-getIndicators = Just ["XPRT-TRD-VL"]
--- Example: Dataset: Trade; Reporter: USA; Product: Ores and Metals; Type: JSON...
-
 newtype Indic = Indic {
   indicatorCode :: String
   } deriving (Show, Generic)
