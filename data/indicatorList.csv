@@ -1,0 +1,126 @@
+indicatorCode,indicatorName
+XPRT-PRTNR-SHR,Export Partner Share
+XPRT-PRDCT-SHR,Export Product Share
+XPRT-SHR-TTL-PRDCT,Export Share in Total Products
+XPRT-TRD-VL,Export Trade Value
+NMBR-XPRT-PRTNR,Number of export partners
+NMBR-PRDCT-XPRTD,Number of products exported
+MPRT-PRTNR-SHR,Import Partner Share
+MPRT-PRDCT-SHR,Import Product Share
+MPRT-SHR-TTL-PRDCT,Share in Total Products
+MPRT-TRD-VL,Import Trade Value
+NMBR-MPRT-PRTNR,Number of import partners
+NMBR-PRDCT-MPRTD,Number of products imported
+HH-MKT-CNCNTRTN-NDX,HH Market concentration index
+CNTRY-GRWTH,Country Growth
+WRLD-GRWTH,World Growth
+NDX-XPRT-MKT-PNRTTN,Index Of Export Market Penetration
+RCA,Revealed comparative advantage
+TRD-CMPLMNTRTY-NDX,Trade complementarity index
+NMBR-XPRT-HS6-PRDCT,No Of traded HS6 digit Products
+NMBR-MPRT-HS6-PRDCT,No Of traded HS6 digit Products
+AHS-AVE-TRFF-LN-SHR,AHS AVE Tariff Lines Share
+AHS-DTBL-MPRT,AHS Dutiable Imports
+AHS-DTBL-TRFF-LNS-SHR,AHS Dutiable Tariff Lines Share
+AHS-DTY-FR-TRFF-LNS-SHR,AHS Duty Free Tariff  Lines Share
+AHS-DTY-FR-MPRTs,AHS Duty Free Imports
+AHS-MXMM-RT,AHS MaxRate
+AHS-MNMM-RATE,AHS MinRate
+AHS-SPCFC-TRFF-LNS-SHR,AHS Specific Tariff Lines Share
+AHS-SMPL-AVRG,AHS Simple Average
+AHS-SPCFC-DTY-MPRT,AHS SpecificDuty Imports
+AHS-TTL-TRFF-LNS,AHS Total Tariff Lines
+AHS-WGHTD-AVRG,AHS Weighted Average
+MFN-AVE-TRFF-LNS-SHR,MFN AVE Tariff Lines Share
+MFN-DTBL-MPRT,MFN Dutiable Imports
+MFN-DTBL-TRFF-LNS-SHR,MFN Dutiable Tariff Lines Share
+MFN-DTY-FR-TRFF-LNS-SHR,MFN Duty Free Tariff Lines Share
+MFN-DTY-FR-MPRTs,MFN Duty Free Imports
+MFN-MXMM-RT,MFN MaxRate
+MFN-MNMN-RT,MFN MinRate
+MFN-SPCFC-TRFF-LNS-SHR,MFN Specific Tariff Lines Share
+MFN-SMPL-AVRG,MFN Simple Average
+MFN-SPCFC-DTY-MPRT,MFN SpecificDuty Imports
+MFN-TTL-TRFF-LNS,MFN Total Tariff Lines
+MFN-WGHTD-AVRG,MFN Weighted Average
+TRF-NMBR-AGGRMNT,No Of Tariff Agreement
+BG-GSR-NFSV-GD-ZS,Trade in services (% of GDP)
+BM-GSR-CMCP-ZS,"Communications, computer, etc. (% of service imports, BoP)"
+BM-GSR-MRCH-CD,"Goods imports (BoP, current US$)"
+BM-GSR-NFSV-CD,"Service imports (BoP, current US$)"
+BM-GSR-TOTL-CD,"Imports of goods, services and primary income (BoP, current US$)"
+BM-GSR-GNFS-CD,"Imports of goods and services (BoP, current US$)"
+BM-GSR-TRAN-ZS,"Transport services (% of service imports, BoP)"
+BM-GSR-TRVL-ZS,"Travel services (% of service imports, BoP)"
+BN-GSR-GNFS-CD,"Net trade in goods and services (BoP, current US$)"
+BN-GSR-MRCH-CD,"Net trade in goods (BoP, current US$)"
+BX-GSR-CCIS-CD,"ICT service exports (BoP, current US$)"
+BX-GSR-CCIS-ZS,"ICT service exports (% of service exports, BoP)"
+BX-GSR-MRCH-CD,"Goods exports (BoP, current US$)"
+BX-GSR-NFSV-CD,"Service exports (BoP, current US$)"
+BX-GSR-GNFS-CD,"Exports of goods and services (BoP, current US$)"
+BX-GSR-TOTL-CD,"Exports of goods, services and primary income (BoP, current US$)"
+BX-GSR-TRAN-ZS,"Transport services (% of service exports, BoP)"
+BX-GSR-TRVL-ZS,"Travel services (% of service exports, BoP)"
+NE-TRD-GNFS-ZS,Trade (% of GDP)
+NY-GNP-MKTP-KD-ZG,GNI growth (annual %)
+NY-GNP-MKTP-PP-CD,"GNI, PPP (current international $)"
+NY-GNP-MKTP-PP-KD,"GNI, PPP (constant 2011 international $)"
+NY-GNP-PCAP-CD,"GNI per capita, Atlas method (current US$)"
+NY-GNP-PCAP-KD,GNI per capita (constant 2005 US$)
+NY-GNP-PCAP-KD-ZG,GNI per capita growth (annual %)
+NY-GNP-PCAP-PP-CD,"GNI per capita, PPP (current international $)"
+EG-IMP-CONS-ZS,"Energy imports, net (% of energy use)"
+GC-TAX-EXPT-CN,Taxes on exports (current LCU)
+GC-TAX-EXPT-ZS,Taxes on exports (% of tax revenue)
+GC-TAX-GSRV-CN,Taxes on goods and services (current LCU)
+GC-TAX-GSRV-RV-ZS,Taxes on goods and services (% of revenue)
+GC-TAX-GSRV-VA-ZS,Taxes on goods and services (% value added of industry and services)
+GC-TAX-IMPT-ZS,Customs and other import duties (% of tax revenue)
+GC-TAX-INTT-CN,Taxes on international trade (current LCU)
+GC-TAX-INTT-RV-ZS,Taxes on international trade (% of revenue)
+IC-EXP-COST-CD,Cost to export (US$ per container)
+IC-EXP-DOCS,Documents to export (number)
+IC-EXP-DURS,Time to export (days)
+IC-IMP-COST-CD,Cost to import (US$ per container)
+IC-IMP-DOCS,Documents to import (number)
+IC-IMP-DURS,Time to import (days)
+NE-EXP-GNFS-CD,Exports of goods and services (current US$)
+NY-GDP-PCAP-KD,GDP per capita (constant 2005 US$)
+NY-GDP-PCAP-KD-ZG,GDP per capita growth (annual %)
+NE-EXP-GNFS-KD,Exports of goods and services (constant 2005 US$)
+NE-EXP-GNFS-KD-ZG,Exports of goods and services (annual % growth)
+NE-EXP-GNFS-ZS,Exports of goods and services (% of GDP)
+NE-IMP-GNFS-CD,Imports of goods and services (current US$)
+NE-IMP-GNFS-KD,Imports of goods and services (constant 2005 US$)
+NE-IMP-GNFS-KD-ZG,Imports of goods and services (annual % growth)
+NE-IMP-GNFS-ZS,Imports of goods and services (% of GDP)
+NY-GDP-MKTP-CD,GDP (current US$)
+NY-GNP-PCAP-PP-KD,"GNI per capita, PPP (constant 2011 international $)"
+NY-GDP-MKTP-KD,GDP (constant 2005 US$)
+NY-GDP-MKTP-KD-ZG,GDP growth (annual %)
+NY-GDP-MKTP-PP-CD,"GDP, PPP (current international $)"
+NY-GDP-MKTP-PP-KD,"GDP, PPP (constant 2011 international $)"
+NY-GDP-PCAP-CD,GDP per capita (current US$)
+NY-GDP-PCAP-PP-CD,"GDP per capita, PPP (current international $)"
+NY-GDP-PCAP-PP-KD,"GDP per capita, PPP (constant 2011 international $)"
+NY-GNP-MKTP-CD,GNI (current US$)
+NY-GNP-MKTP-KD,GNI (constant 2005 US$)
+TM-VAL-MRCH-XD-WD,Import value index (2000 = 100)
+TX-VAL-MRCH-XD-WD,Export value index (2000 = 100)
+ST-INT-RCPT-XP-ZS,"International tourism, receipts (% of total exports)"
+ST-INT-XPND-MP-ZS,"International tourism, expenditures (% of total imports)"
+TG-VAL-TOTL-GD-ZS,Merchandise trade (% of GDP)
+TM-QTY-MRCH-XD-WD,Import volume index (2000 = 100)
+TM-VAL-INSF-ZS-WT,Insurance and financial services (% of commercial service imports)
+TM-VAL-OTHR-ZS-WT,"Computer, communications and other services (% of commercial service imports)"
+TM-VAL-SERV-CD-WT,Commercial service imports (current US$)
+TM-VAL-TRAN-ZS-WT,Transport services (% of commercial service imports)
+TM-VAL-TRVL-ZS-WT,Travel services (% of commercial service imports)
+TT-PRI-MRCH-XD-WD,Net barter terms of trade index (2000 = 100)
+TX-QTY-MRCH-XD-WD,Export volume index (2000 = 100)
+TX-VAL-INSF-ZS-WT,Insurance and financial services (% of commercial service exports)
+TX-VAL-OTHR-ZS-WT,"Computer, communications and other services (% of commercial service exports)"
+TX-VAL-SERV-CD-WT,Commercial service exports (current US$)
+TX-VAL-TRAN-ZS-WT,Transport services (% of commercial service exports)
+TX-VAL-TRVL-ZS-WT,Travel services (% of commercial service exports)
