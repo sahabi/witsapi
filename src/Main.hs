@@ -3,17 +3,19 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.Csv as C
 import qualified Data.Vector as V
 
+import Data.Csv ((.:), FromNamedRecord, parseNamedRecord, decodeByName)
+import Data.Either
 import Data.Maybe
 import Data.Traversable
 import Data.Aeson.Types (Parser, withObject)
-import Data.Aeson (FromJSON, ToJSON, Object, Value, parseJSON, eitherDecode)
+import Data.Aeson (FromJSON, ToJSON, Object, Value, parseJSON, eitherDecode, decode)
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HM
 import Control.Applicative
 import Control.Monad
+import Control.Exception
 import qualified Data.ByteString.Lazy as B
 import Network.HTTP.Conduit (simpleHttp)
 import GHC.Generics
@@ -27,16 +29,12 @@ instance ToJSON TradeData
 data Dataset = Trade | Tariff | Development
   deriving (Show, Enum)
 
--- better to import the list of reporters due to the large number
-data Reporter = USA
-  deriving (Show, Enum)
-
 -- add other formats as needed
 data Format = JSON deriving (Show, Enum)
 
 -- this is the data structure for the request
 data Request = Request { dataset :: Dataset
-                       , reporter :: Reporter
+                       , reporter :: String
                        , prod :: String
                        , format :: Format
                        , partner :: String
@@ -56,31 +54,45 @@ getRequestUrl r = baseUrl ++ "tradestats-" ++ show (dataset r)
     where baseUrl = "http://wits.worldbank.org/API/V1/SDMX/V21/datasource/"
 
 -- this function fetches the data given the request parameters
-getData :: Request -> IO B.ByteString
-getData r = simpleHttp url
+getData :: Request -> IO (Maybe B.ByteString)
+getData r = handle errorHandler $ Just <$> simpleHttp url
   where url = getRequestUrl r
+        errorHandler :: SomeException -> IO (Maybe B.ByteString)
+        errorHandler _ = return Nothing
 
-newtype Indic = Indic {
+newtype Reporter = Reporter {
+  reporterCode :: String
+  } deriving (Show, Generic)
+
+instance FromNamedRecord Reporter where
+    parseNamedRecord r = Reporter <$> r .: "reporterCode"
+
+newtype Indicator = Indicator {
   indicatorCode :: String
   } deriving (Show, Generic)
 
-instance C.FromNamedRecord Indic where
-    parseNamedRecord r = Indic <$> r C..: "indicatorCode"
+instance FromNamedRecord Indicator where
+    parseNamedRecord r = Indicator <$> r .: "indicatorCode"
 
-getInputList :: (C.FromNamedRecord a) => String -> (a -> String) -> IO [String]
+getInputList :: (FromNamedRecord a) => String -> (a -> b) -> IO [b]
 getInputList f p = do
   csvData <- BL.readFile f
-  case C.decodeByName csvData of
+  case decodeByName csvData of
     Left err -> return []
     Right (_, v) -> return $ foldr ((:) . p) [] v
 
+getIndicatorList = getInputList "data/indicatorList.csv" indicatorCode
+getCountryList =  getInputList "data/CountryList.csv" reporterCode
+
 req :: IO [Request]
 req = do
-  indList <- getInputList "data/indicatorList.csv" indicatorCode
-  return $ Request <$> [Trade ..] <*> [USA] <*> ["OresMtls"] <*> [JSON] <*> ["ALL"] <*>
-    indList <*> [2000 .. 2016]
+  indList <- getIndicatorList
+  countryList <- getCountryList
+  return $ Request <$> [Trade ..] <*> countryList <*> ["OresMtls"] <*> [JSON] <*> ["ALL"] <*>
+    take 10 indList <*> [2016]
 
 main = do
   rs <- req
-  d <- sequence (getData <$> rs) -- :: IO (Either String [TradeData])
+  d <- fmap (maybe (Just (TradeData [])) decode) <$> sequence (getData <$>  rs) :: IO [Maybe TradeData]
+  print d
   print $ length rs
