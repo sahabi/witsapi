@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE Arrows, NoMonomorphismRestriction #-}
 
+import Text.XML.HXT.Core
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Vector as V
 
@@ -19,6 +21,8 @@ import Control.Exception
 import qualified Data.ByteString.Lazy as B
 import Network.HTTP.Conduit (simpleHttp)
 import GHC.Generics
+
+atTag tag = deep (isElem >>> hasName tag)
 
 newtype TradeData = TradeData { dataSets :: [Object]
                            } deriving (Generic, Show)
@@ -42,16 +46,17 @@ data Request = Request { dataset :: Dataset
                        , year :: Int
                        } deriving (Show)
 
+
 -- this function generates the URL from the request
 getRequestUrl :: Request -> String
-getRequestUrl r = baseUrl ++ "tradestats-" ++ show (dataset r)
+getRequestUrl r = apiBaseUrl ++ "tradestats-" ++ show (dataset r)
   ++ "/reporter/" ++ show (reporter r)
   ++ "/year/" ++ show (year r)
   ++ "/partner/" ++ partner r
   ++ "/product/" ++ prod r
   ++ "/indicator/" ++ indicator r
   ++ "?format=" ++ show (format r)
-    where baseUrl = "http://wits.worldbank.org/API/V1/SDMX/V21/datasource/"
+  where apiBaseUrl = "http://wits.worldbank.org/API/V1/SDMX/V21/datasource/"
 
 -- this function fetches the data given the request parameters
 getData :: Request -> IO (Maybe B.ByteString)
@@ -65,14 +70,27 @@ newtype Reporter = Reporter {
   } deriving (Show, Generic)
 
 instance FromNamedRecord Reporter where
-    parseNamedRecord r = Reporter <$> r .: "reporterCode"
+  parseNamedRecord r = Reporter <$> r .: "reporterCode"
 
 newtype Indicator = Indicator {
   indicatorCode :: String
   } deriving (Show, Generic)
 
+newtype Product = Product {
+  productCode :: String
+  } deriving (Show, Eq)
+
+parseXML = readDocument [ withValidate no
+                        , withRemoveWS yes  -- throw away formating WS
+                        ]
+
+getProduct = atTag "wits:product" >>>
+  proc p -> do
+    pCode <- getAttrValue "productcode" -< p
+    returnA -< Product pCode
+
 instance FromNamedRecord Indicator where
-    parseNamedRecord r = Indicator <$> r .: "indicatorCode"
+  parseNamedRecord r = Indicator <$> r .: "indicatorCode"
 
 getInputList :: (FromNamedRecord a) => String -> (a -> b) -> IO [b]
 getInputList f p = do
@@ -82,17 +100,29 @@ getInputList f p = do
     Right (_, v) -> return $ foldr ((:) . p) [] v
 
 getIndicatorList = getInputList "data/indicatorList.csv" indicatorCode
-getCountryList =  getInputList "data/CountryList.csv" reporterCode
+getCountryList =  getInputList "data/countryList.csv" reporterCode
 
 req :: IO [Request]
 req = do
   indList <- getIndicatorList
   countryList <- getCountryList
-  return $ Request <$> [Trade ..] <*> countryList <*> ["OresMtls"] <*> [JSON] <*> ["ALL"] <*>
-    take 10 indList <*> [2016]
+  productList <- getProductList
+  print $ length indList
+  print $ length countryList
+  print $ length productList
+  return $ Request <$> [Trade ..]
+                   <*> countryList
+                   <*> ["ALL"]
+                   <*> [JSON]
+                   <*> ["ALL"]
+                   <*> indList
+                   <*> [1988.. 2017]
+
+getProductList = fmap productCode <$>
+  runX (parseXML "data/productList.xml" >>> getProduct)
 
 main = do
   rs <- req
-  d <- fmap (maybe (Just (TradeData [])) decode) <$> sequence (getData <$>  rs) :: IO [Maybe TradeData]
-  print d
+  d <- fmap (maybe (Just (TradeData [])) decode) <$>
+    sequence (getData <$>  rs) :: IO [Maybe TradeData]
   print $ length rs
