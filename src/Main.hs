@@ -1,128 +1,95 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE Arrows, NoMonomorphismRestriction #-}
 
-import Text.XML.HXT.Core
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.Vector as V
-
-import Data.Csv ((.:), FromNamedRecord, parseNamedRecord, decodeByName)
-import Data.Either
-import Data.Maybe
-import Data.Traversable
-import Data.Aeson.Types (Parser, withObject)
-import Data.Aeson (FromJSON, ToJSON, Object, Value, parseJSON, eitherDecode, decode)
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HM
+import qualified Data.ByteString.Lazy as B
+import Text.XML.HXT.Core
+import Text.XML.HXT.HTTP (withHTTP)
+import Text.XML.HXT.Curl (withCurl)
 import Control.Applicative
 import Control.Monad
-import Control.Exception
-import qualified Data.ByteString.Lazy as B
-import Network.HTTP.Conduit (simpleHttp)
-import GHC.Generics
 
-atTag tag = deep (isElem >>> hasName tag)
+newtype Country = Country { countryCode :: String } deriving (Show, Eq)
+newtype Indicator = Indicator { indicatorCode :: String } deriving (Show, Eq)
+newtype Product = Product { productCode :: String } deriving (Show, Eq)
+newtype Observation = Observation { observation :: String } deriving (Show, Eq)
 
-newtype TradeData = TradeData { dataSets :: [Object]
-                           } deriving (Generic, Show)
+data Tariff = Tariff { country :: String
+                     , year :: Int
+                     , partner :: String
+                     , prod :: String
+                     , indicator :: String
+                     , obs :: String
+                     } deriving (Show)
 
-instance FromJSON TradeData
-instance ToJSON TradeData
-
-data Dataset = Trade | Tariff | Development
-  deriving (Show, Enum)
-
--- add other formats as needed
-data Format = JSON deriving (Show, Enum)
-
--- this is the data structure for the request
-data Request = Request { dataset :: Dataset
-                       , reporter :: String
-                       , prod :: String
-                       , format :: Format
-                       , partner :: String
-                       , indicator :: String
-                       , year :: Int
-                       } deriving (Show)
-
-
--- this function generates the URL from the request
-getRequestUrl :: Request -> String
-getRequestUrl r = apiBaseUrl ++ "tradestats-" ++ show (dataset r)
-  ++ "/reporter/" ++ show (reporter r)
+getTariffRequestUrl :: Tariff -> String
+getTariffRequestUrl r = dataBaseUrl
+  ++ "/reporter/" ++ country r
   ++ "/year/" ++ show (year r)
   ++ "/partner/" ++ partner r
   ++ "/product/" ++ prod r
   ++ "/indicator/" ++ indicator r
-  ++ "?format=" ++ show (format r)
-  where apiBaseUrl = "http://wits.worldbank.org/API/V1/SDMX/V21/datasource/"
-
--- this function fetches the data given the request parameters
-getData :: Request -> IO (Maybe B.ByteString)
-getData r = handle errorHandler $ Just <$> simpleHttp url
-  where url = getRequestUrl r
-        errorHandler :: SomeException -> IO (Maybe B.ByteString)
-        errorHandler _ = return Nothing
-
-newtype Reporter = Reporter {
-  reporterCode :: String
-  } deriving (Show, Generic)
-
-instance FromNamedRecord Reporter where
-  parseNamedRecord r = Reporter <$> r .: "reporterCode"
-
-newtype Indicator = Indicator {
-  indicatorCode :: String
-  } deriving (Show, Generic)
-
-newtype Product = Product {
-  productCode :: String
-  } deriving (Show, Eq)
 
 parseXML = readDocument [ withValidate no
-                        , withRemoveWS yes  -- throw away formating WS
+                        , withRemoveWS yes
+                        , withHTTP []
+                        , withCurl []
                         ]
 
-getProduct = atTag "wits:product" >>>
-  proc p -> do
-    pCode <- getAttrValue "productcode" -< p
-    returnA -< Product pCode
+atTag tag = deep (isElem >>> hasName tag)
+text = getChildren >>> getText
 
-instance FromNamedRecord Indicator where
-  parseNamedRecord r = Indicator <$> r .: "indicatorCode"
+getParam t1 t2 con = atTag t1 >>>
+  proc x ->
+    case take 4 t2 of
+      "wits" -> do
+        param <- text <<< atTag t2 -< x
+        returnA -< con param
+      _ -> do
+        param <- getAttrValue t2 -< x
+        returnA -< con param
 
-getInputList :: (FromNamedRecord a) => String -> (a -> b) -> IO [b]
-getInputList f p = do
-  csvData <- BL.readFile f
-  case decodeByName csvData of
-    Left err -> return []
-    Right (_, v) -> return $ foldr ((:) . p) [] v
+getParamList f1 url f2 = fmap f1 <$> runX (parseXML url  >>> f2)
 
-getIndicatorList = getInputList "data/indicatorList.csv" indicatorCode
-getCountryList =  getInputList "data/countryList.csv" reporterCode
+getCountryList :: IO [String]
+getCountryList = getParamList countryCode (metaBaseUrl ++ "/country/all") getCountry
+  where getCountry = getParam "wits:country" "wits:iso3Code" Country
 
-req :: IO [Request]
-req = do
+getIndicatorList :: IO [String]
+getIndicatorList = getParamList indicatorCode (metaBaseUrl ++ "/indicator/all") getIndicator
+  where getIndicator = getParam "wits:indicator" "indicatorcode" Indicator
+
+getProductList :: IO [String]
+getProductList = getParamList productCode (metaBaseUrl ++ "/product/all") getProduct
+  where getProduct = getParam "wits:product" "productcode" Product
+
+getObs :: String -> IO [String]
+getObs url = getParamList observation url getObservation
+  where getObservation = getParam "Obs" "OBS_VALUE" Observation
+
+getTariffs :: String -> IO [Tariff]
+getTariffs = undefined
+
+mkRequests :: IO [Tariff]
+mkRequests = do
   indList <- getIndicatorList
   countryList <- getCountryList
   productList <- getProductList
-  print $ length indList
-  print $ length countryList
-  print $ length productList
-  return $ Request <$> [Trade ..]
-                   <*> countryList
-                   <*> ["ALL"]
-                   <*> [JSON]
-                   <*> ["ALL"]
-                   <*> indList
-                   <*> [1988.. 2017]
+  return $ Tariff <$> ["usa"]
+                  <*> [2010]
+                  <*> ["all"]
+                  <*> ["all"]
+                  <*> indList
+                  <*> [""]
 
-getProductList = fmap productCode <$>
-  runX (parseXML "data/productList.xml" >>> getProduct)
+metaBaseUrl = "http://wits.worldbank.org/API/V1/wits/datasource/tradestats-tariff"
+dataBaseUrl = "http://wits.worldbank.org/API/V1/SDMX/V21/datasource/tradestats-tariff"
 
 main = do
-  rs <- req
-  d <- fmap (maybe (Just (TradeData [])) decode) <$>
-    sequence (getData <$>  rs) :: IO [Maybe TradeData]
-  print $ length rs
+  req <- mkRequests
+  let urls = getTariffRequestUrl <$> req
+  ts <- sequence $ getTariffs <$> urls
+  sequence $ print <$> ts
