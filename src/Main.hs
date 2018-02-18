@@ -93,8 +93,8 @@ mkRequests = do
   indList <- getIndicatorList
   countryList <- getCountryList
   productList <- getProductList
-  return $ Tariff <$> countryList
-                  <*> [1990 .. 2017]
+  return $ Tariff <$> ["usa"]
+                  <*> [1991 .. 2017]
                   <*> ["all"]
                   <*> ["all"]
                   <*> indList
@@ -103,11 +103,22 @@ mkRequests = do
 metaBaseUrl = "http://wits.worldbank.org/API/V1/wits/datasource/tradestats-tariff"
 dataBaseUrl = "http://wits.worldbank.org/API/V1/SDMX/V21/datasource/tradestats-tariff"
 
-getTariffs url = runX (parseXML url >>> parseTariffs)
+getTariffs :: String -> IO (Maybe (IO [Tariff]))
+getTariffs url = do
+  c <- H.simpleHTTP (H.getRequest url) >>= fmap (take 1) . H.getResponseBody
+  case c of
+    "N" -> return Nothing
+    _ -> return $ Just $ runX (parseXML url >>> parseTariffs)
+
+getTariffsList :: IO [Tariff]
+getTariffsList = do
+  rq <- mkRequests
+  let urls = getTariffRequestUrl <$> rq
+  trs <- sequence $ getTariffs <$> take 5 urls
+  tar <- traverse (fromMaybe (pure []) ) trs
+  return $ concat tar
 
 main :: IO ()
 main = do
-  rq <- mkRequests
-  let urls = getTariffRequestUrl <$> rq
-  tar <- sequence $ getTariffs <$> urls
-  print $ length $ concat tar
+  l <- getTariffsList
+  pPrint l
