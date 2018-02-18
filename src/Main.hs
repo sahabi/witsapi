@@ -25,7 +25,10 @@ data Tariff = Tariff { country :: String
                      , obs :: String
                      } deriving (Show)
 
-getTariffRequestUrl :: Tariff -> String
+type Request = Tariff
+type URL = String
+
+getTariffRequestUrl :: Request -> URL
 getTariffRequestUrl r = dataBaseUrl
   ++ "/reporter/" ++ country r
   ++ "/year/" ++ show (year r)
@@ -55,31 +58,40 @@ getParam t1 t2 con = atTag t1 >>>
 getParamList f1 url f2 = fmap f1 <$> runX (parseXML url  >>> f2)
 
 getCountryList :: IO [String]
-getCountryList = getParamList countryCode (metaBaseUrl ++ "/country/all") getCountry
-  where getCountry = getParam "wits:country" "wits:iso3Code" Country
+getCountryList = getParamList countryCode (metaBaseUrl ++ "/country/all") parseCountry
+  where parseCountry = getParam "wits:country" "wits:iso3Code" Country
 
 getIndicatorList :: IO [String]
-getIndicatorList = getParamList indicatorCode (metaBaseUrl ++ "/indicator/all") getIndicator
-  where getIndicator = getParam "wits:indicator" "indicatorcode" Indicator
+getIndicatorList = getParamList indicatorCode (metaBaseUrl ++ "/indicator/all") parseIndicator
+  where parseIndicator = getParam "wits:indicator" "indicatorcode" Indicator
 
 getProductList :: IO [String]
-getProductList = getParamList productCode (metaBaseUrl ++ "/product/all") getProduct
-  where getProduct = getParam "wits:product" "productcode" Product
+getProductList = getParamList productCode (metaBaseUrl ++ "/product/all") parseProduct
+  where parseProduct = getParam "wits:product" "productcode" Product
 
 getObs :: String -> IO [String]
-getObs url = getParamList observation url getObservation
-  where getObservation = getParam "Obs" "OBS_VALUE" Observation
+getObs url = getParamList observation url parseObservation
+  where parseObservation = getParam "Obs" "OBS_VALUE" Observation
 
-getTariffs :: String -> IO [Tariff]
-getTariffs = undefined
+parseTariffs = atTag "Series" >>>
+  proc x -> do
+    r <- getAttrValue "REPORTER" -< x
+    p <- getAttrValue "PARTNER" -< x
+    prod <- getAttrValue "PRODUCTCODE" -< x
+    part <- getAttrValue "PARTNER" -< x
+    ind <- getAttrValue "INDICATOR" -< x
+    obs <- atTag "Obs" -< x
+    y <- getAttrValue "TIME_PERIOD" -< obs
+    obsv <- getAttrValue "OBS_VALUE" -< obs
+    returnA -< Tariff r (read y :: Int) part prod ind obsv
 
-mkRequests :: IO [Tariff]
+mkRequests :: IO [Request]
 mkRequests = do
   indList <- getIndicatorList
   countryList <- getCountryList
   productList <- getProductList
-  return $ Tariff <$> ["usa"]
-                  <*> [2010]
+  return $ Tariff <$> countryList
+                  <*> [1990 .. 2017]
                   <*> ["all"]
                   <*> ["all"]
                   <*> indList
@@ -88,8 +100,11 @@ mkRequests = do
 metaBaseUrl = "http://wits.worldbank.org/API/V1/wits/datasource/tradestats-tariff"
 dataBaseUrl = "http://wits.worldbank.org/API/V1/SDMX/V21/datasource/tradestats-tariff"
 
+getTariffs url = runX (parseXML url >>> parseTariffs)
+
+main :: IO ()
 main = do
-  req <- mkRequests
-  let urls = getTariffRequestUrl <$> req
-  ts <- sequence $ getTariffs <$> urls
-  sequence $ print <$> ts
+  rq <- mkRequests
+  let urls = getTariffRequestUrl <$> rq
+  tar <- sequence $ getTariffs <$> urls
+  print $ length $ concat tar
