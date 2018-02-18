@@ -6,11 +6,14 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HM
 import qualified Data.ByteString.Lazy as B
+import qualified Network.HTTP as H
+import Data.Maybe
 import Text.XML.HXT.Core
 import Text.XML.HXT.HTTP (withHTTP)
 import Text.XML.HXT.Curl (withCurl)
 import Control.Applicative
 import Control.Monad
+import Text.Pretty.Simple (pPrint)
 
 newtype Country = Country { countryCode :: String } deriving (Show, Eq)
 newtype Indicator = Indicator { indicatorCode :: String } deriving (Show, Eq)

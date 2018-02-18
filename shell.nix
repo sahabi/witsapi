@@ -5,7 +5,7 @@ let
   inherit (nixpkgs) pkgs;
 
   f = { mkDerivation, base, bytestring, curl, HTTP, http-conduit
-      , hxt, hxt-curl, hxt-http, resourcet, stdenv, text
+      , hxt, hxt-curl, hxt-http, pretty-simple, resourcet, stdenv, text
       , unordered-containers
       }:
       mkDerivation {
@@ -16,7 +16,7 @@ let
         isExecutable = true;
         executableHaskellDepends = [
           base bytestring curl HTTP http-conduit hxt hxt-curl hxt-http
-          resourcet text unordered-containers
+          pretty-simple resourcet text unordered-containers
         ];
         homepage = "https://github.com/sahabi/witsapi.git";
         license = stdenv.lib.licenses.bsd3;
