@@ -45,7 +45,7 @@ parseXML = readDocument [ withValidate no
 atTag tag = deep (isElem >>> hasName tag)
 text = getChildren >>> getText
 
-getParam t1 t2 con = atTag t1 >>>
+parseParam t1 t2 con = atTag t1 >>>
   proc x ->
     case take 4 t2 of
       "wits" -> do
@@ -59,19 +59,19 @@ getParamList f1 url f2 = fmap f1 <$> runX (parseXML url  >>> f2)
 
 getCountryList :: IO [String]
 getCountryList = getParamList countryCode (metaBaseUrl ++ "/country/all") parseCountry
-  where parseCountry = getParam "wits:country" "wits:iso3Code" Country
+  where parseCountry = parseParam "wits:country" "wits:iso3Code" Country
 
 getIndicatorList :: IO [String]
 getIndicatorList = getParamList indicatorCode (metaBaseUrl ++ "/indicator/all") parseIndicator
-  where parseIndicator = getParam "wits:indicator" "indicatorcode" Indicator
+  where parseIndicator = parseParam "wits:indicator" "indicatorcode" Indicator
 
 getProductList :: IO [String]
 getProductList = getParamList productCode (metaBaseUrl ++ "/product/all") parseProduct
-  where parseProduct = getParam "wits:product" "productcode" Product
+  where parseProduct = parseParam "wits:product" "productcode" Product
 
 getObs :: String -> IO [String]
 getObs url = getParamList observation url parseObservation
-  where parseObservation = getParam "Obs" "OBS_VALUE" Observation
+  where parseObservation = parseParam "Obs" "OBS_VALUE" Observation
 
 parseTariffs = atTag "Series" >>>
   proc x -> do
